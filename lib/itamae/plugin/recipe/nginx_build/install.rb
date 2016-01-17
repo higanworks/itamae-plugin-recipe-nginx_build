@@ -1,10 +1,16 @@
 nginx_build_bin = "/usr/local/bin/"
 nginx_build_bin = node[:nginx_build][:bin] if node[:nginx_build] && node[:nginx_build][:bin]
 
-nginx_user = "nginx"
-nginx_user = node[:nginx_build][:nginx_user] if node[:nginx_build] && node[:nginx_build][:nginx_user]
+case node[:platform]
+when 'debian', 'ubuntu'
+  nginx_user = "www-data"
+  nginx_group = "www-data"
+else
+  nginx_user = "nginx"
+  nginx_group = "nginx"
+end
 
-nginx_group = "nginx"
+nginx_user = node[:nginx_build][:nginx_user] if node[:nginx_build] && node[:nginx_build][:nginx_user]
 nginx_group = node[:nginx_build][:nginx_group] if node[:nginx_build] && node[:nginx_build][:nginx_group]
 
 nginx_sbin = "/usr/sbin/nginx"
@@ -74,7 +80,12 @@ template "/etc/init.d/nginx" do
   owner "root"
   group "root"
   mode "755"
-  source "./templates/init_nginx.erb"
+  case node[:platform]
+  when 'debian', 'ubuntu'
+    source "./templates/init_nginx_debian.erb"
+  else
+    source "./templates/init_nginx.erb"
+  end
   variables({
                 "nginx_sbin" => nginx_sbin,
                 "nginx_conf" => nginx_conf,
