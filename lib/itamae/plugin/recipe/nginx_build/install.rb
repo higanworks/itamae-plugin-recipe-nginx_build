@@ -31,6 +31,9 @@ configure_path = node[:nginx_build][:configure_path] if node[:nginx_build] && no
 modules3rd_path = '/usr/local/nginx_build/modules3rd.ini'
 modules3rd_path = node[:nginx_build][:modules3rd_path] if node[:nginx_build] && node[:nginx_build][:modules3rd_path]
 
+nginx_autodeps = %w[pcre zlib openssl]
+nginx_autodeps = node[:nginx_build][:autodeps] if node[:nginx_build] && node[:nginx_build][:autodeps]
+
 nginx_modules3rds = []
 nginx_modules3rds = node[:nginx_build][:modules3rds] if node[:nginx_build] && node[:nginx_build][:modules3rds]
 
@@ -71,7 +74,7 @@ if modules3rd_path =~ /^(.+)\/([^\/]+)$/
 end
 
 execute "build-nginx" do
-  command "#{nginx_build_bin}nginx-build -d work -v #{nginx_version} -c #{configure_path} -m #{modules3rd_path} && \
+  command "#{nginx_build_bin}nginx-build -d work -v #{nginx_version} -c #{configure_path} -m #{modules3rd_path} #{nginx_autodeps.map {|d| "-" + d}.join(' ')} && \
            cd ~/work/nginx/#{nginx_version}/nginx-#{nginx_version} && sudo make install"
   action :nothing
 end
